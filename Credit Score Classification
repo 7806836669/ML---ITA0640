@@ -1,0 +1,49 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Generating synthetic data
+np.random.seed(0)
+data_size = 1000
+data = {
+    'age': np.random.randint(18, 70, data_size),
+    'income': np.random.randint(20000, 150000, data_size),
+    'loan_amount': np.random.randint(1000, 50000, data_size),
+    'credit_score': np.random.randint(300, 850, data_size)
+}
+
+df = pd.DataFrame(data)
+
+# Binning credit scores into categories
+bins = [300, 580, 670, 740, 800, 850]
+labels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent']
+df['credit_score_category'] = pd.cut(df['credit_score'], bins=bins, labels=labels, include_lowest=True)
+
+# Dropping the original credit score column
+df = df.drop('credit_score', axis=1)
+
+# Splitting data into features and labels
+X = df.drop('credit_score_category', axis=1)
+y = df['credit_score_category']
+
+# Splitting the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Preprocessing the data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Training the model
+model = RandomForestClassifier(n_estimators=100, random_state=0)
+model.fit(X_train, y_train)
+
+# Evaluating the model
+y_pred = model.predict(X_test)
+
+# Generating the classification report and confusion matrix
+print("Classification Report:\n", classification_report(y_test, y_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
